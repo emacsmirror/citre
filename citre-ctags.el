@@ -95,7 +95,8 @@ this if ctags is not in your PATH, or its name is not \"ctags\""
 %TAGSFILE%
 -L
 %LISTFILE%
-# Programming languages to be scanned, or \"all\" for all supported languages
+# Programming languages to be scanned, or \"all\" for all supported languages.
+# Languages should be comma separated, without blanks.
 --languages=%LANGUAGES%
 --kinds-all=*
 --fields=*
