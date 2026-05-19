@@ -488,10 +488,10 @@ for your callback function."
                       (pcase (process-exit-status proc)
                         (0 (funcall callback 0 nil))
                         (s (funcall callback s
-                                    (with-current-buffer stderr-buffer
-                                      (if (buffer-live-p stderr-buffer)
-                                          (buffer-string)
-                                        ""))))))
+                                    (if (buffer-live-p stderr-buffer)
+                                        (with-current-buffer stderr-buffer
+                                          (buffer-string))
+                                      "")))))
                      (s (funcall callback s nil)))
                  (when (buffer-live-p stderr-buffer)
                    (citre-kill-process-buffer stderr-buffer))))))))
