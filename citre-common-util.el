@@ -535,37 +535,34 @@ signaled."
          (proc (citre-process-proc proc-data)))
     (unwind-protect
         ;; We need to poll the process in a non-blocking way (i.e., allow
-        ;; quitting).  In order to understand this, we need to keep in mind 2
-        ;; facts about `accept-process-output':
+        ;; quitting).  In order to understand this, we need to know the
+        ;; behavior of `accept-process-output'.  According to
+        ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=32986 and process.c in
+        ;; Emacs:
         ;;
         ;; 1. user input could not be processed during `accept-process-output'
-        ;;    (so it blocks, see
-        ;;    https://debbugs.gnu.org/cgi/bugreport.cgi?bug=32986).
+        ;;    (so it blocks).
         ;;
-        ;; 2. When it accepts output from a certain process, it waits till the
-        ;;    process outputs something or finishes.  Try:
+        ;; 2. An `accept-process-output' call without timeout specified can
+        ;;    last forever.  Usually we see it returns quickly because there
+        ;;    are timers running in the background which interferes the
+        ;;    waiting.
         ;;
-        ;;    ;; This blocks
-        ;;    (let ((proc (make-process :name "test" :command '("sleep" "1"))))
-        ;;      (accept-process-output proc))
+        ;; So what we do is to make `accept-process-output' returns when
+        ;; there's process output, or when a timeout is reached. Try this:
         ;;
-        ;;    ;; This doesn't block as `accept-process-output' returns quickly
-        ;;    ;; and keyboard input is handled in between calls to
-        ;;    ;; `accept-process-output'.
-        ;;    (let ((proc (make-process :name "test" :command '("sleep" "1"))))
-        ;;      (accept-process-output))
+        ;;    (let ((proc (make-process :name "test" :command '("sleep" "5"))))
+        ;;      (accept-process-output nil 1))
+        ;;
+        ;;  It should return at 1 sec.  We don't set the PROCESS argument.  It
+        ;;  works well in this simple example, but for unknown reason, run
+        ;;  `citre-get-output-lines' on some commands (a simple "readtags", for
+        ;;  example) will stuck forever with PROCESS set.
         (progn
-          ;; Wait for the process to finish.  This trick is borrowed from
-          ;; emacs-aio (https://github.com/skeeto/emacs-aio).  This doesn't
-          ;; block.
           (while (not finished)
-            ;; Some users report that Emacs freezes here, which implies that
-            ;; the sentinel is never called. `accept-process-output' should
-            ;; allow the sentinel to run, so I don't know, but maybe try these
-            ;; 2 forms: the first one to accept user input, the second one to
-            ;; allow the sentinel to run?
-            (accept-process-output)
-            (accept-process-output proc 0))
+            ;; Quitting is handled in between these `accept-process-output'
+            ;; calls.
+            (accept-process-output nil 0.01))
           ;; The process is finished, but there may still be buffered output
           ;; that's pending, so we `accept-process-output' from the process.
           ;; This blocks, but doesn't cause a problem, as the process is
