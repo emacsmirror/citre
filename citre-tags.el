@@ -623,9 +623,14 @@ If the ctags program is not found, this returns nil."
 
 ;;;; Backend definition
 
+(defun citre-tags-usable-p ()
+  "Detect whether tags backend is usable."
+  (and (citre-executable-find (or citre-readtags-program "readtags") t)
+       (citre-tags-file-path)))
+
 (defvar citre-tags-backend
   (citre-backend-create
-   :usable-probe #'citre-tags-file-path
+   :usable-probe #'citre-tags-usable-p
    :symbol-at-point-fn #'citre-tags-symbol-at-point
    :completions-fn #'citre-tags-get-completions-at-point
    :id-list-fn #'citre-tags-get-identifiers
