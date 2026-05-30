@@ -586,7 +586,7 @@ This also works on a remote machine."
 (defun citre-tags--imenu-tags-from-temp-tags-file ()
   "Get tags for imenu from a new temporary tags file.
 If the ctags program is not found, this returns nil."
-  (when (citre-executable-find (or citre-ctags-program "ctags"))
+  (when (citre-executable-find (or citre-ctags-program "ctags") t)
     (pcase-let* ((`(,cmd . ,cwd) (citre-tags--imenu-ctags-command-cwd))
                  (tags-file (citre-tags--imenu-temp-tags-file-path)))
       (make-directory (file-name-directory tags-file) 'parents)

@@ -90,7 +90,7 @@ database in the project directory."
   "Get output from global program.
 ARGS is the arguments passed to the program."
   (let ((prog (or citre-global-program "global")))
-    (when (citre-executable-find prog)
+    (when (citre-executable-find prog t)
       (citre-get-output-lines (append (list prog) args)))))
 
 (defun citre-global--get-lines (name &optional mode case-fold start-file)
